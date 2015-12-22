@@ -1,50 +1,52 @@
 <?php
 
 class VkQuery{
-	private $count = -1;
-	private $client_id = '';
-	private $client_secret = '';
-	private $token = '';
+	private $count = -1; //Счётчик обращений к приложению
+	private $client_id = ''; //ID Приложения
+	private $client_secret = ''; //Секретный ключ приложения
+	private $token = ''; //Пользовательский токен
 	
-	//Формирование _GET запроса к API
+	//Формирование GET запроса к API
 	public function jsonGetQuery($method, array $data){
-		
+		//Если запросов к API больше 3 то ждем 1 сек.
 		$this->count ++;
-        if($this->count >= 3){
-            $this->count = 0;
-            sleep(1);
-        }
+		if($this->count >= 3){
+            	$this->count = 0;
+            	sleep(1);
+        	}
         
-        $params = array();
-        if($data != null){
+		//Формируем массив передаваемх значений
+        	$params = array();
+        	if($data != null){
 			foreach($data as $name => $val){
 				$params[$name] = $val;
 			}
 		}
         
-        $params['v'] = '5.41';
+        	//Какую версию API использовать
+        	$params['v'] = '5.41';
         
 		$json = file_get_contents('https://api.vk.com/method/' . $method . '?' . http_build_query($params));
-        return json_decode($json);
+        	return json_decode($json);
 	}
 	
-	//Формирование _POST запроса к API
+	//Формирование POST запроса к API, аналогично GET запросу с некоторыми особенностями
 	public function jsonPostQuery($method, array $data){
 		
 		$this->count ++;
-        if($this->count >= 3){
-            $this->count = 0;
-            sleep(1);
-        }
+        	if($this->count >= 3){
+            		$this->count = 0;
+            		sleep(1);
+        	}
         
-        $params = array();
-        foreach($data as $name => $val){
-            $params[$name] = $val;
-        }
+        	$params = array();
+        	foreach($data as $name => $val){
+            		$params[$name] = $val;
+        	}
         
-        $params['v'] = '5.80';
+        	$params['v'] = '5.80';
         
-        $postdata = http_build_query($params);
+        	$postdata = http_build_query($params);
 
 		$opts = array('http' =>
 			array(
@@ -63,7 +65,12 @@ class VkQuery{
 	//Массив передаваемых значений
 	private $arrdata = array();
 	
-	//Реализация _GET запроса
+	/*
+	* Реализация GET и POST запросов
+	* Метод передайт трипараметра, название метода API, параметры передаваемых значений, неоходимость передачи токена
+	* по умолчанию токен false, если токен необходим, то при запросе нужно указать true
+	*/
+	
 	public function getData($methods,$user_params,$token = false){
 		if($user_params!=null){
 			foreach($user_params as $k=>$v){
@@ -75,7 +82,7 @@ class VkQuery{
 		return $user_info;
 	}
 	
-	//Реализация _GET запроса для Серверных методов
+	//Реализация GET запроса для Серверных методов, дополнительно включена передача секретного ключа приложения
 	public function secData($methods,$user_params,$token){
 		if($user_params!=null){
 			foreach($user_params as $k=>$v){
@@ -89,7 +96,7 @@ class VkQuery{
 		return $user_info;
 	}
 	
-	//Реализация _POST запроса
+	//Реализация POST запроса
 	public function postData($methods,$user_params,$token = false){
 		if($user_params!=null){
 			foreach($user_params as $k=>$v){
