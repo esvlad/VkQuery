@@ -3,7 +3,7 @@
  * Class VkQuery
  * @author: Старцев Владислав
  * @link: https://github.com/esvlad/VkQuery
- * @version: 1.1
+ * @version: 1.2
  */
 
 class VkQuery{
@@ -105,22 +105,36 @@ class VkQuery{
 	/*
 	 * Метод для добавления фотографии в ВК на стену юзера или группы
 	 * @param string $file - загружаемый файл
-	 * @param int $data - id группы (по умолчанию null, если загружаем на стену пользователя)
+	 * @param string $type - тип публикации, при публикации на стену указываем 'wall', при добавлении в альбом 'album'
+	 * по умолчанию 'wall'
+	 * @param int $group_id  - id группы (по умолчанию null, если загружаем на стену пользователя)
+	 * @param array $param - доп. параметры, если нужно загружать в альбом, то нужно передать $param['album_id'] = ID альбома
 	 * @return array - выводит массив данных
 	 */
-	public function uploadsImage($file, $data = null){
-		if($data!=null) $this->arrdata['group_id']=$data;
-		else $this->arrdata = null; 
-		$upload = $this->getData('photos.getWallUploadServer',$this->arrdata,true);
-		$uploadURL = $upload->response->upload_url;
-		$files = array('photo' => '@'.$file);
+	public function uploadsImage($file, $type = 'wall', $group_id = null, $param = null){
 		
+		if($group_id!=null) $this->arrdata['group_id']=$group_id;
+		else $this->arrdata = null; 
+		
+		if($type == 'wall'){
+			$upload = $this->getData('photos.getWallUploadServer',$this->arrdata,true);
+			$files = array('photo' => '@'.$file);
+			$saveMethod = 'photos.saveWallPhoto';
+			$typeData = 'photo';
+		} else {
+			if(array_key_exists('album_id',$param)) $this->arrdata['album_id']=$param['album_id'];
+			$upload = $this->getData('photos.getUploadServer',$this->arrdata,true);
+			$files = array('file1' => '@'.$file);
+			$saveMethod = 'photos.save';
+			$typeData = 'photos_list';
+		}
+		$uploadURL = $upload->response->upload_url;
 		//Отправляем файл на сервер
 		$json = $this->postData($uploadURL, $files);
 		
 		$photoParams = array(
 			'server' => $json->server,
-			'photo' => ($json->photo),
+			$typeData => $json->$typeData,
 			'hash' => $json->hash
 		);
 		
@@ -129,8 +143,14 @@ class VkQuery{
 			$photoParams['group_id'] = $this->arrdata['group_id'];
 		}
 		
+		if($param!=null){
+			foreach($param as $k=>$v){
+				$photoParams[$k]=$v;
+			}
+		}
+		
 		//Сохраняем фотографию
-		$photo = $this->getData('photos.saveWallPhoto',$photoParams,true);
+		$photo = $this->getData($saveMethod,$photoParams,true);
 		
 		if(isset($photo->response[0]->id)){
 			return $photo;
