@@ -3,11 +3,10 @@
  * Class VkQuery
  * @author: Старцев Владислав
  * @link: https://github.com/esvlad/VkQuery
- * @version: 1.2
+ * @version: 1.3
  */
 
 class VkQuery{
-	private $count = -1; //Счётчик обращений к приложению
 	private $client_id = ''; //ID Приложения
 	private $client_secret = ''; //Секретный ключ приложения
 	private $token = ''; //Пользовательский токен
@@ -15,13 +14,6 @@ class VkQuery{
 	
 	//Формирование GET запроса к API, данные возвращаются методом getData()
 	public function jsonGetQuery($method, array $data){
-		//Если запросов к API больше 3 то спим 1 сек.
-		$this->count ++;
-		if($this->count >= 3){
-            	$this->count = 0;
-            	sleep(1);
-        	}
-        
 		//Формируем массив передаваемх значений
         	$params = array();
         	if($data != null){
