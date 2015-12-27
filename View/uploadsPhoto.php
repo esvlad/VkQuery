@@ -3,7 +3,7 @@ include('./VkQuery.php');
 
 $vk = new VkQuery();
 
-$img = array('file1.jpg','file1.jpg');
+$img = array('file1.jpg','file2.jpg');
 $group_id = 12345; //id группы
 $param['album_id'] = 12345; //id альбома
 $countImg = count($img); //считаем кол-во изображений
