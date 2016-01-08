@@ -12,6 +12,11 @@ class VkQuery{
 	private $token = ''; //Пользовательский токен
 	private $arrdata = array(); //Массив передаваемых значений
 	
+	//Конструктор, возвращает токен
+	function __construct($token){
+		$this->token = (isset($token)) ? $token : $this->token;
+	}
+	
 	//Формирование GET запроса к API, данные возвращаются методом getData()
 	public function jsonGetQuery($method, array $data){
 		//Формируем массив передаваемх значений
