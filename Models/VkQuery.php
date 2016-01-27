@@ -103,8 +103,8 @@ class VkQuery{
 	 * Метод для добавления фотографии в ВК на стену юзера или группы
 	 * @param string $file - загружаемый файл
 	 * @param string $type - тип публикации, при публикации на стену указываем 'wall', при добавлении в альбом 'album',
-	 * при добавлении изображений товара 'market', при добавлении фотографии для подборки товаров 'marketAlbum'
-	 * по умолчанию 'wall'
+	 * при добавлении изображений товара 'market', при добавлении фотографии для подборки товаров 'marketAlbum',
+	 * при прикреплении изображения к сообщению 'message', по умолчанию 'wall'
 	 * @param int $group_id  - id группы (по умолчанию null, если загружаем на стену пользователя)
 	 * @param array $param - доп. параметры, если нужно загружать в альбом, то нужно передать $param['album_id'] = ID альбома
 	 * @return array - выводит массив данных
@@ -112,53 +112,56 @@ class VkQuery{
 	public function uploadsImage($file, $type = 'wall', $group_id = null, $param = null){
 		
 		if($group_id!=null) $this->arrdata['group_id']=$group_id;
-		else $this->arrdata = null; 
+		else $this->arrdata = null;
 		
-		if($type == 'wall'){
-			$upload = $this->getData('photos.getWallUploadServer',$this->arrdata,true);
-			$files = array('photo' => '@'.$file);
-			$saveMethod = 'photos.saveWallPhoto';
-			$typeData = 'photo';
-		} elseif($type == 'album') {
-			if(array_key_exists('album_id',$param)) $this->arrdata['album_id']=$param['album_id'];
-			$upload = $this->getData('photos.getUploadServer',$this->arrdata,true);
-			$files = array('file1' => '@'.$file);
-			$saveMethod = 'photos.save';
-			$typeData = 'photos_list';
-		} elseif($type =='massage'){
-			$upload = $this->getData('photos.getMessagesUploadServer',$this->arrdata,true);
-			$files = array('photo' => '@'.$file);
-			$saveMethod = 'photos.saveMessagesPhoto';
-			$typeData = 'photo';
-		} elseif($type == 'market'){
-			$upload = $this->getData('photos.getMarketUploadServer',$this->arrdata,true);
-			$files = array('file' => '@'.$file);
-			$saveMethod = 'photos.saveMarketPhoto';
-			$typeData = 'photo';
-		} elseif($type == 'marketAlbum'){
-			$upload = $this->getData('photos.getMarketAlbumUploadServer',$this->arrdata,true);
-			$files = array('file' => '@'.$file);
-			$saveMethod = 'photos.saveMarketAlbumPhoto';
-			$typeData = 'photo';
+		switch($type){
+			case 'album':
+				if(array_key_exists('album_id',$param)) $this->arrdata['album_id']=$param['album_id'];
+				$upload = $this->getData('photos.getUploadServer',$this->arrdata,true);
+				$files = array('file1' => '@'.$file);
+				$saveMethod = 'photos.save';
+				$typeData = 'photos_list';
+				break;
+			case 'message':
+				$upload = $this->getData('photos.getMessagesUploadServer',$this->arrdata,true);
+				$files = array('photo' => '@'.$file);
+				$saveMethod = 'photos.saveMessagesPhoto';
+				$typeData = 'photo';
+				break;
+			case 'market':
+				$upload = $this->getData('photos.getMarketUploadServer',$this->arrdata,true);
+				$files = array('file' => '@'.$file);
+				$saveMethod = 'photos.saveMarketPhoto';
+				$typeData = 'photo';
+				break;
+			case 'marketAlbum':
+				$upload = $this->getData('photos.getMarketAlbumUploadServer',$this->arrdata,true);
+				$files = array('file' => '@'.$file);
+				$saveMethod = 'photos.saveMarketAlbumPhoto';
+				$typeData = 'photo';
+				break;
+			default:
+				$upload = $this->getData('photos.getWallUploadServer',$this->arrdata,true);
+				$files = array('photo' => '@'.$file);
+				$saveMethod = 'photos.saveWallPhoto';
+				$typeData = 'photo';
+				break;
 		}
 		
 		$uploadURL = $upload->response->upload_url;
 		//Отправляем файл на сервер
 		$json = $this->postData($uploadURL, $files);
 		
+		$photoParams = array(
+			'server' => $json->server,
+			$typeData => $json->$typeData,
+			'hash' => $json->hash
+		);
+		
 		if(isset($json->crop_data) || isset($json->crop_hash)){
 			$photoParams = array(
-				'server' => $json->server,
-				$typeData => $json->$typeData,
-				'hash' => $json->hash,
 				'crop_data' => $json->crop_data,
 				'crop_hash' => $json->crop_hash
-			);
-		} else{
-			$photoParams = array(
-				'server' => $json->server,
-				$typeData => $json->$typeData,
-				'hash' => $json->hash
 			);
 		}
 		
