@@ -3,7 +3,7 @@
  * Class VkQuery
  * @author: Старцев Владислав
  * @link: https://github.com/esvlad/VkQuery
- * @version: 1.3
+ * @version: 0.1.3
  */
 
 class VkQuery{
